@@ -25,6 +25,16 @@ const userSchema = new mongoose.Schema({
     avatarUrl: {
         type: String,
     },
+    refreshToken: {
+        type: String,
+    },
+    expiresAt: {
+        type: Date,
+    },
+    isRevoked: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now
