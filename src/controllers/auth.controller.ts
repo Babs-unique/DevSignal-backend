@@ -2,6 +2,9 @@ import bcrypt from 'bcryptjs';
 import type { Request, Response } from 'express';
 import { User } from '../models/users.model.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken, verifyAccessToken } from '../utils/jwt.js';
+import { sendPasswordResetEmail } from '../services/email.service.js';
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 interface RegisterBody {
     email?: string;
@@ -52,6 +55,12 @@ export const register = async (req: Request<{}, any, RegisterBody>,
         const accessToken = generateAccessToken({ userId: user.id });
         const refreshToken = generateRefreshToken({ userId: user.id });
 
+        // Save refresh token to database
+        user.refreshToken = refreshToken;
+        user.isRevoked = false;
+        user.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await user.save();
+
         return res.status(201).json({
             status: 'success',
             message: 'User registered successfully',
@@ -101,6 +110,25 @@ export const login = async (req:Request<{}, any, LoginBody>,
         const accessToken = generateAccessToken({ userId: user.id });
         const refreshToken = generateRefreshToken({ userId: user.id });
 
+        // Save refresh token to database
+        user.refreshToken = refreshToken;
+        user.isRevoked = false;
+        user.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await user.save();
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000
+        });
+
         return res.status(200).json({
             status: 'success',
             message: 'Login successful',
@@ -109,14 +137,21 @@ export const login = async (req:Request<{}, any, LoginBody>,
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                },
-                accessToken,
-                refreshToken,
+                }
             },
         });
 
     }catch(e){
         console.error('Login error', e);
+        
+        // Handle JWT errors specifically
+        if (e instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid authentication token'
+            });
+        }
+        
         return res.status(500).json({
             status : 'error',
             message: 'Server error'
@@ -171,7 +206,7 @@ export const refreshToken = async (req: Request, res: Response) => {
                 isRevoked: false,
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
             },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         res.cookie('refreshToken', newRefreshToken, {
@@ -197,6 +232,21 @@ export const refreshToken = async (req: Request, res: Response) => {
         });
     } catch (e) {
         console.error('Error refreshing token:', e);
+        
+        // Handle JWT errors specifically
+        if (e instanceof jwt.JsonWebTokenError) {
+            if (e.name === 'TokenExpiredError') {
+                return res.status(401).json({
+                    status: 'error',
+                    message: 'Refresh token has expired. Please login again'
+                });
+            }
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid refresh token'
+            });
+        }
+        
         return res.status(500).json({
             status: 'error',
             message: 'Server error'
@@ -246,5 +296,124 @@ export const logout = async (req: Request, res: Response) => {
         });
     }
 };
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Email is required'
+        });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            // Don't reveal if user exists for security reasons
+            return res.status(200).json({
+                status: 'success',
+                message: 'If an account exists with this email, a reset link has been sent'
+            });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+        // Save reset token to user
+        user.resetToken = resetToken;
+        user.resetTokenExpiry = resetTokenExpiry;
+        await user.save();
+
+        // Send email
+        await sendPasswordResetEmail(email, resetToken);
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'If an account exists with this email, a reset link has been sent'
+        });
+    } catch (e) {
+        console.error('Forgot password error:', e);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Failed to process forgot password request'
+        });
+    }
+};
+
+interface ResetPasswordBody {
+    token?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+}
+
+export const resetPassword = async (req: Request<{}, any, ResetPasswordBody>, res: Response) => {
+    const { token, newPassword, confirmPassword } = req.body;
+
+    if (!token || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Token, new password, and confirm password are required'
+        });
+    }
+
+    if (newPassword !== confirmPassword) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Passwords do not match'
+        });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Password must be at least 6 characters'
+        });
+    }
+
+    try {
+        const user = await User.findOne({
+            resetToken: token,
+            resetTokenExpiry: { $gt: new Date() }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid or expired reset token'
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update user password and clear reset token
+        user.password = hashedPassword;
+        user.resetToken = undefined;
+        user.resetTokenExpiry = undefined;
+        await user.save();
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Password reset successful. You can now login with your new password'
+        });
+    } catch (e) {
+        console.error('Reset password error:', e);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Failed to reset password'
+        });
+    }
+};
+
+export const reset = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Email is required'
+        });
+    }
+}
 
 

@@ -4,7 +4,9 @@ import {
     login,
     register,
     refreshToken,
-    logout
+    logout,
+    forgotPassword,
+    resetPassword
 } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { loginSchema , registerSchema } from '../schema/authSchema.js';
@@ -19,5 +21,8 @@ router.post('/login', validateRequest(loginSchema), login);
 router.post('/refresh', refreshToken);
 router.post('/logout', authenticate, logout);
 
+// Password recovery routes
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 export default router;

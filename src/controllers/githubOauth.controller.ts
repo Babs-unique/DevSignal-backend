@@ -3,6 +3,7 @@ import { githubAccessToken, githubUser } from '../services/github.service.js';
 import { User } from '../models/users.model.js';
 import { generateAccessToken , generateRefreshToken , verifyAccessToken , verifyRefreshToken} from '../utils/jwt.js';
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { generateState, validateState , deleteState } from '../utils/state.js';
 import { generateCodeVerifier, generateCodeChallenge } from '../utils/pkce.js';
 import { userLoginOrRegister, refreshGithubToken, logoutGithubUser } from '../services/githubAuth.service.js';
@@ -27,7 +28,14 @@ export const initiateGithubOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
                 codeVerifier
             }
         }   
-        res.redirect(authUrl);
+        return res.status(200).json({
+            status: true,
+            message: 'Authorization url generated successfully',
+            data:{
+                authUrl
+            }
+        })
+        /* res.redirect(authUrl); */
         } catch (e) {
         console.error('Error initiating GitHub OAuth:', e);
         return res.status(500).json({
@@ -135,6 +143,21 @@ export const refreshToken = async (req: Request, res: Response) => {
         });
     } catch (e) {
         console.error('Error refreshing GitHub tokens:', e);
+        
+        // Handle JWT errors specifically
+        if (e instanceof jwt.JsonWebTokenError) {
+            if (e.name === 'TokenExpiredError') {
+                return res.status(401).json({
+                    status: 'error',
+                    message: 'Refresh token has expired. Please login again'
+                });
+            }
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid refresh token'
+            });
+        }
+        
         return res.status(500).json({
             status: 'error',
             message: 'Failed to refresh tokens'

@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { generateCodeVerifier, generateCodeChallenge } from '../utils/pkce.js';
 import { generateState, validateState, deleteState } from '../utils/state.js';
 import { User } from '../models/users.model.js';
+import jwt from 'jsonwebtoken';
 
 export const initiateGoogleOAuth = (req: Request<{}, {} ,{} , { json?: boolean }>, res: Response) => {
     try {
@@ -130,6 +131,23 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     }catch(e){
         console.error('Error refreshing Google token:', e);
+        
+        // Handle JWT errors specifically
+        if (e instanceof jwt.JsonWebTokenError) {
+            if (e.name === 'TokenExpiredError') {
+                return res.status(401).json({
+                    status: "error",
+                    success: false,
+                    message: "Refresh token has expired. Please login again"
+                });
+            }
+            return res.status(401).json({
+                status: "error",
+                success: false,
+                message: "Invalid refresh token"
+            });
+        }
+        
         return res.status(500).json({
             status: "error",
             success: false,
