@@ -4,9 +4,9 @@ import {
     handleGoogleOauthCallback,
     initiateGoogleOAuth,
     refreshAccessToken,
-    getGoogleUserProfile,
-    logout
+    getGoogleUserProfile
 } from '../controllers/googleOauth.controller.js';
+import { logout } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 
 
@@ -16,7 +16,9 @@ router.get('/google', initiateGoogleOAuth);
 router.get('/google/callback', handleGoogleOauthCallback);
 router.post('/google/refresh', refreshAccessToken);
 router.get('/google/profile', getGoogleUserProfile);
-router.post('/google/logout', authenticate, logout);
+
+// Use unified logout for all user types
+router.post('/logout', authenticate, logout);
 
 
 export default router;

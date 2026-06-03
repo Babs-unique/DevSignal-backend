@@ -193,7 +193,7 @@ export const getGoogleUserProfile = async (req: Request, res: Response) => {
 };
 
 
-export const logout = async (req: Request, res: Response) => {
+/* export const logout = async (req: Request, res: Response) => {
     const refreshTokenCookie = req.cookies.refreshToken;
     if (!refreshTokenCookie) {
         return res.status(401).json({
@@ -220,4 +220,4 @@ export const logout = async (req: Request, res: Response) => {
             message: "Failed to log out Google user"
         });
     }
-}
+} */

@@ -6,7 +6,8 @@ import {
     refreshToken,
     logout,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    getCurrentUser
 } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { loginSchema , registerSchema } from '../schema/authSchema.js';
@@ -20,6 +21,9 @@ router.post('/register', validateRequest(registerSchema), register);
 router.post('/login', validateRequest(loginSchema), login);
 router.post('/refresh', refreshToken);
 router.post('/logout', authenticate, logout);
+
+// Get current user (protected)
+router.get('/me', authenticate, getCurrentUser);
 
 // Password recovery routes
 router.post('/forgot-password', forgotPassword);

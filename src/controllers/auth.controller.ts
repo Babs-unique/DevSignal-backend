@@ -406,14 +406,47 @@ export const resetPassword = async (req: Request<{}, any, ResetPasswordBody>, re
     }
 };
 
-export const reset = async (req: Request, res: Response) => {
-    const { email } = req.body;
-    if (!email) {
-        return res.status(400).json({
+export const getCurrentUser = async (req: Request, res: Response) => {
+    try {
+        if (!req.user?.userId) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Unauthorized'
+            });
+        }
+
+        const user = await User.findById(req.user.userId).select('-password -refreshToken -resetToken -resetTokenExpiry');
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'User not found'
+            });
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            data: {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    githubId: user.githubId,
+                    googleId: user.googleId,
+                    avatarUrl: user.avatarUrl,
+                    createdAt: user.createdAt
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Error fetching current user:', e);
+        return res.status(500).json({
             status: 'error',
-            message: 'Email is required'
+            message: 'Failed to fetch user information'
         });
     }
-}
+};
+
+
 
 

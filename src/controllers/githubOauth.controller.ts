@@ -198,7 +198,7 @@ export const getGithubUser = async (req: Request, res: Response) => {
 };
 
 
-export const logout = async (req: Request, res: Response) => {
+/* export const logout = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
         return res.status(401).json({
@@ -222,3 +222,4 @@ export const logout = async (req: Request, res: Response) => {
         });
     }
 };
+ */
