@@ -9,6 +9,7 @@ interface EnvironmentVariables {
     JWT_REFRESH_SECRET: string;
     JWT_SECRET_EXPIRES: string;
     JWT_REFRESH_SECRET_EXPIRES: string;
+    OPEN_API_KEY: string
 }
 
 const extractEnvironmentVariables = (): EnvironmentVariables => {
@@ -19,6 +20,7 @@ const extractEnvironmentVariables = (): EnvironmentVariables => {
         JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
         JWT_SECRET_EXPIRES: process.env.JWT_SECRET_EXPIRES || '15m',
         JWT_REFRESH_SECRET_EXPIRES: process.env.JWT_REFRESH_SECRET_EXPIRES || '7d',
+        OPEN_API_KEY: process.env.OPEN_API_KEY || ''
     };
 };
 
