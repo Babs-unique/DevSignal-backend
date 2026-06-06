@@ -9,7 +9,9 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: function (this: { githubId?: string; googleId?: string }) {
+            return !this.githubId && !this.googleId;
+        },
         minlength: 6
     },
     name: {
@@ -55,5 +57,6 @@ const userSchema = new mongoose.Schema({
         versionKey: false
     }
 );
+
 
 export const User = mongoose.model('User', userSchema);

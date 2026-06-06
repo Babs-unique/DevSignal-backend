@@ -99,6 +99,12 @@ export const login = async (req:Request<{}, any, LoginBody>,
                 message: 'Invalid email or password'
             })      
         }
+        if (!user.password) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Account associated with Google or Github '
+            })
+        }
         const isMatch = await bcrypt.compare(password, user.password);
         if(!isMatch){
             return res.status(400).json({

@@ -1,7 +1,5 @@
 import axios from 'axios';
-import { googleConfig } from '../config/google.js';
-import e from 'express';
-
+import { googleConfig } from '../config/google.js'
 
 
 export const googleAccessToken = async (code: string, codeVerifier: string) => {
@@ -12,15 +10,18 @@ export const googleAccessToken = async (code: string, codeVerifier: string) => {
         throw new Error('Code verifier is required');
     }
     try{
+        const tokenPayload = new URLSearchParams({
+            client_id: googleConfig.clientId,
+            client_secret: googleConfig.clientSecret,
+            code,
+            code_verifier: codeVerifier,
+            grant_type: 'authorization_code',
+            redirect_uri: googleConfig.redirectUri,
+        });
+
         const response = await axios.post(
             googleConfig.tokenUrl,
-            {
-                client_id: googleConfig.clientId,
-                client_secret: googleConfig.clientSecret,
-                code: code,
-                redirect_uri: googleConfig.redirectUri,
-                code_verifier: codeVerifier
-            },
+            tokenPayload,
             {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -37,9 +38,14 @@ export const googleAccessToken = async (code: string, codeVerifier: string) => {
             throw new Error('Failed to exchange code for access token');
         }
 
-    }catch(e){
-        console.error('Error exchanging code for access token:', e);
-        throw new Error('Failed to exchange code for access token');
+    }catch(error){
+        if (axios.isAxiosError(error)) {
+            console.error('Google token exchange failed:', error.response?.data || error.message);
+            throw new Error(`Failed to exchange code for access token: ${error.response?.data?.error_description || error.response?.data?.error || error.message}`);
+        }
+
+        console.error('Error exchanging code for access token:', error);
+        throw error;
     }
 }
 
@@ -74,8 +80,10 @@ export const googleUser = async (accessToken: string) => {
                 throw new Error('Failed to fetch Google user email');
             }
         }
-    }catch(e){
-        console.error('Error fetching Google user data:', e);
+
+        return googleUserData;
+    }catch(error){
+        console.error('Error fetching Google user data:', error);
         throw new Error('Failed to fetch Google user data');
     }
 }

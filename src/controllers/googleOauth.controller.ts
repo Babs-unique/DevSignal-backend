@@ -1,7 +1,7 @@
 import { googleConfig} from '../config/google.js';
 import { googleAccessToken, googleUser } from '../services/google.service.js';
 import { userLoginOrRegister, refreshGoogleToken, logoutGoogleUser } from '../services/googleAuth.service.js';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { generateCodeVerifier, generateCodeChallenge } from '../utils/pkce.js';
 import { generateState, validateState, deleteState } from '../utils/state.js';
 import { User } from '../models/users.model.js';
@@ -15,15 +15,30 @@ export const initiateGoogleOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
             codeVerifier, 
             codeChallenge
         });
-        deleteState(state);
-        const authUrl = `${googleConfig.authUrl}?client_id=${googleConfig.clientId}&redirect_uri=${encodeURIComponent(googleConfig.redirectUri)}&scope=openid%20email%20profile&response_type=code&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+        const authParams = new URLSearchParams({
+            client_id: googleConfig.clientId,
+            redirect_uri: googleConfig.redirectUri,
+            scope: 'openid email profile',
+            response_type: 'code',
+            state,
+            code_challenge: codeChallenge,
+            code_challenge_method: 'S256',
+        });
+        const authUrl = `${googleConfig.authUrl}?${authParams.toString()}`;
         if(req.query.json === true || req.headers.accept?.includes('application/json')){
             return res.json({ 
                 success: true,
                 authUrl
             });
         }
-        res.redirect(authUrl);
+         return res.status(200).json({
+            status: true,
+            message: 'Authorization url generated successfully',
+            data:{
+                authUrl
+            }
+        })
+      /*   res.redirect(authUrl); */ // Uncomment this line to redirect to Google OAuth
     } catch (error) {
         console.error('Error initiating Google OAuth:', error);
         res.status(500).json({ error: 'Failed to initiate Google OAuth' });

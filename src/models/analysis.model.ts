@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-interface Analysis{
+export interface Analysis{
   user: mongoose.Types.ObjectId;
 
   // Inputs
@@ -69,10 +69,10 @@ interface Analysis{
   createdAt: Date;
   updatedAt: Date;
 }
-const analysisSchema = new mongoose.Schema(
+const analysisSchema = new Schema<Analysis>(
   {
     user: {
-      type: new mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,

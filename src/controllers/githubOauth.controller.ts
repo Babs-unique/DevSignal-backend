@@ -35,7 +35,7 @@ export const initiateGithubOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
                 authUrl
             }
         })
-        /* res.redirect(authUrl); */
+        /* res.redirect(authUrl); */ // Uncomment this line to redirect to Github OAuth
         } catch (e) {
         console.error('Error initiating GitHub OAuth:', e);
         return res.status(500).json({

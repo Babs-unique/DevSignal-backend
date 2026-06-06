@@ -5,11 +5,11 @@ import morgan from 'morgan';
 import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import rateLimiter from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import authRouter from './routes/auth.routes.js';
 import githubAuthRouter from './routes/githubAuth.routes.js';
 import googleAuthRouter from './routes/googleAuth.routes.js';
-
+import analysesRouter from './routes/analyses.routes.js';
 dotenv.config();
 
 
@@ -24,7 +24,7 @@ app.use(cors({
 }));
 
 
-const oauthLimiter = rateLimiter({
+const oauthLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: parseInt(process.env.OAUTH_MAX_REQUESTS || '50', 10), // Limit each IP to 50 requests per windowMs
     message: {
@@ -33,7 +33,7 @@ const oauthLimiter = rateLimiter({
     }
 });
 
-const authLimiter = rateLimiter({
+const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: parseInt(process.env.AUTH_MAX_REQUESTS || '50', 10), // Limit each IP to 50 requests per windowMs
     message: {
@@ -42,7 +42,7 @@ const authLimiter = rateLimiter({
     }
 });
 
-const apiLimiter = rateLimiter({
+const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: parseInt(process.env.API_MAX_REQUESTS || '100', 10), // Limit each IP to 100 requests per windowMs
     message: {
@@ -56,7 +56,7 @@ const apiLimiter = rateLimiter({
 app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/auth', oauthLimiter, githubAuthRouter);
 app.use('/api/auth', oauthLimiter, googleAuthRouter);
-
+app.use('/api/analyses', apiLimiter, analysesRouter);
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to DevSignal backend!');
