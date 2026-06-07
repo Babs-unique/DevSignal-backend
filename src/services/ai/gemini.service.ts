@@ -76,7 +76,7 @@ export const analyzeWithGemini = async (data: PromptData): Promise<AnalysisResul
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    matchScore: { type: Type.INTEGER },
+                    matchScore: { type: Type.NUMBER },
                     analysisSummary: {
                         type: Type.OBJECT,
                         properties: {
@@ -93,7 +93,7 @@ export const analyzeWithGemini = async (data: PromptData): Promise<AnalysisResul
                             properties: {
                                 skill: { type: Type.STRING },
                                 level: { type: Type.STRING, enum: ["Beginner", "Intermediate", "Advanced"] },
-                                confidence: { type: Type.INTEGER },
+                                confidence: { type: Type.NUMBER },
                                 category: { type: Type.STRING }
                             },
                             required: ["skill", "level", "confidence", "category"]
@@ -149,8 +149,8 @@ export const analyzeWithGemini = async (data: PromptData): Promise<AnalysisResul
                             type: Type.OBJECT,
                             properties: {
                                 skill: { type: Type.STRING },
-                                userScore: { type: Type.INTEGER },
-                                marketExpectedScore: { type: Type.INTEGER }
+                                userScore: { type: Type.NUMBER },
+                                marketExpectedScore: { type: Type.NUMBER }
                             },
                             required: ["skill", "userScore", "marketExpectedScore"]
                         }
@@ -174,6 +174,10 @@ export const analyzeWithGemini = async (data: PromptData): Promise<AnalysisResul
     if (!result) {
         throw new Error('No response from Gemini');
     }
-
-    return JSON.parse(result) as AnalysisResult;
+    try {
+        return JSON.parse(result) as AnalysisResult;
+    } catch (error) {
+        console.error('Error parsing Gemini response:', error);
+        throw new Error('Failed to parse Gemini response');
+    }
 };

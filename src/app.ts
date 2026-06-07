@@ -10,6 +10,7 @@ import authRouter from './routes/auth.routes.js';
 import githubAuthRouter from './routes/githubAuth.routes.js';
 import googleAuthRouter from './routes/googleAuth.routes.js';
 import analysesRouter from './routes/analyses.routes.js';
+import dashboardRouter from './routes/dashboard.routes.js';
 dotenv.config();
 
 
@@ -57,6 +58,8 @@ app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/auth', oauthLimiter, githubAuthRouter);
 app.use('/api/auth', oauthLimiter, googleAuthRouter);
 app.use('/api/analyses', apiLimiter, analysesRouter);
+app.use('/api/dashboard', apiLimiter, dashboardRouter);
+
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to DevSignal backend!');

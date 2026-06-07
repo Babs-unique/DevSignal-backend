@@ -8,7 +8,7 @@ import { authenticate } from '../middleware/authMiddleware.js';
 
 const router : Router = express.Router();
 
-router.post('/newAnalyses', authenticate , resumeUpload.single('resume') , newAnalyses)
+router.post('/', authenticate , resumeUpload.single('resume') , newAnalyses)
 
 
 

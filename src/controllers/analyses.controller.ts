@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { Analysis } from '../models/analysis.model.js';
 import { extractResume } from '../utils/extractResume.js';
-import { analyseResume } from '../services/ai/openai.service.js';
+import { analyzeResume } from '../services/ai/ai.service.js';
 
 
 
@@ -48,7 +48,7 @@ export const newAnalyses = async (req: Request, res: Response) => {
             });
         }
 
-        const analysisResult =  await analyseResume({
+        const analysisResult =  await analyzeResume({
             resumeText,
             jobDescription,
             roleTitle,

@@ -34,6 +34,11 @@ export const analyzeWithOpenAI = async ( data: PromptData ) => {
     if(!result){
         throw new Error('No response from OpenAI');
     }
-    return JSON.parse(result);
+    try {
+        return JSON.parse(result);
+    } catch (error) {
+        console.error('Error parsing OpenAI response:', error);
+        throw new Error('Failed to parse OpenAI response');
+    }
     
 }
