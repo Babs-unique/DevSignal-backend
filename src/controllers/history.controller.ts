@@ -19,7 +19,7 @@ export const getHistoryMetric = async (req: Request, res: Response) => {
         });
     }
     try {
-        const analyses = await Analysis.find({ userId })
+        const analyses = await Analysis.find({ userId , isDeleted:false})
         .sort({ createdAt: -1 });
 
         const averageMatchScore = analyses.reduce((total, analysis) => total + analysis.matchScore, 0) / analyses.length;
@@ -59,7 +59,7 @@ export const getHistory = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10 ;
     const startIndex = (page - 1) * limit;
     try {
-        const analyses = await Analysis.find({ userId })
+        const analyses = await Analysis.find({ userId , isDeleted:false })
         .sort({ createdAt: -1 })
         .skip(startIndex)
         .limit(limit);
@@ -115,9 +115,9 @@ export const searchHistory = async (req: Request<
             ],
             matchScore: { $gte: score },
             createdAt: { $gte: dateRange},
-            userId
+            userId,
+            isDeleted:false
         });
-
         if(analyses.length === 0){
             return res.status(200).json({
                 status: "success",
@@ -141,6 +141,103 @@ export const searchHistory = async (req: Request<
             status: "error",
             success: false,
             message: "Failed to fetch analyses",
+        });
+    }
+}
+
+export const getHistoryById = async (req : Request, res: Response) => {
+    const userId = req.user?.userId;
+    if(!userId){
+        return res.status(401).json({
+            status: "error",
+            success: false,
+            message: "User not authenticated"
+        });
+    }
+    const { id } = req.params;
+    if(!id){
+        return res.status(400).json({
+            status: "error",
+            success: false,
+            message: "Analysis id is required"
+        });
+    }
+    try {
+        const analysis = await Analysis.findById(id);
+        if(!analysis){
+            return res.status(404).json({
+                status: "error",
+                success: false,
+                message: "Analysis not found"
+            });
+        }
+        return res.status(200).json({
+            status: "success",
+            success: true,
+            data: {
+                analysis
+            }
+        });
+    }catch(e){
+        console.error("Error fetching analyses:", e);
+        return res.status(500).json({
+            status: "error",
+            success: false,
+            message: "Failed to fetch analyses",
+        });
+    }
+}
+
+export const deleteHistoryById = async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({
+            status: "error",
+            success: false,
+            message: "User not authenticated"
+        });
+    }
+
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({
+            status: "error",
+            success: false,
+            message: "Analysis id is required"
+        });
+    }
+
+    try {
+        const analysis = await Analysis.findOneAndUpdate(
+            { _id: id, userId: userId },
+            { 
+                $set: { 
+                    isDeleted: true, 
+                    deletedAt: new Date() 
+                } 
+            },
+            { new: true } 
+        );
+
+        if (!analysis) {
+            return res.status(404).json({
+                status: "error",
+                success: false,
+                message: "Analysis not found"
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            success: true,
+            message: "Analysis deleted successfully"
+        });
+    } catch (e) {
+        console.error("Error deleting analysis:", e);
+        return res.status(500).json({
+            status: "error",
+            success: false,
+            message: "Failed to delete analysis",
         });
     }
 }

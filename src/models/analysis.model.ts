@@ -66,6 +66,9 @@ export interface Analysis{
     marketExpectedScore: number;
   }[];
 
+  isDeleted:boolean,
+  deletedAt:Date
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -151,9 +154,12 @@ const analysisSchema = new Schema<Analysis>(
         marketExpectedScore: Number,
       },
     ],
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
   },
   {
     timestamps: true,
+    versionKey: false,  
   }
 );
 
