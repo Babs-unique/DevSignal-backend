@@ -8,7 +8,7 @@ import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import {xss} from 'express-xss-sanitizer';
-import { errorHandler} from '../middleware/errorHandler.js'
+import { errorHandler } from './middleware/errorHandler.js';
 import authRouter from './routes/auth.routes.js';
 import githubAuthRouter from './routes/githubAuth.routes.js';
 import googleAuthRouter from './routes/googleAuth.routes.js';

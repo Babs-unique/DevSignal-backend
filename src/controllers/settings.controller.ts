@@ -2,6 +2,7 @@ import { User } from '../models/users.model.js';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import { Analysis } from '../models/analysis.model.js';
 
 export const getSettings = async( req: Request, res:Response) => {
     const userId = req.user?.userId;
@@ -138,3 +139,81 @@ export const updatePassword = async ( req: Request, res:Response) =>{
         })  
     }
 }
+
+export const exportData = async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+        return res.status(401).json({
+            status: 'error',
+            success: false,
+            message: 'User not authenticated'
+        });
+    }
+
+    try {
+        // 1. Check if at least one document exists before starting the download
+        const hasData = await Analysis.exists({ userId });
+        
+        if (!hasData) {
+            return res.status(404).json({
+                status: 'error',
+                success: false,
+                message: 'No analyses found'
+            });
+        }
+
+        // 2. Set headers immediately to initiate the file download
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename="analyses_data.json"');
+        res.status(200);
+
+        // 3. Open a stream cursor from MongoDB
+        const cursor = Analysis.find({ userId }).lean().cursor();
+        
+        // 4. Stream valid JSON array structure chunks to the client
+        res.write('[\n'); 
+        let isFirst = true;
+
+        cursor.on('data', (doc) => {
+            if (!isFirst) {
+                res.write(',\n'); // Add comma between JSON objects
+            }
+            res.write(JSON.stringify(doc, null, 2));
+            isFirst = false;
+        });
+
+        cursor.on('end', () => {
+            res.write('\n]'); // Close the JSON array syntax
+            res.end();       // Close the HTTP connection
+        });
+
+        cursor.on('error', (streamErr) => {
+            console.error('Streaming error:', streamErr);
+            // Connection is already open with 200 headers, so we just destroy it
+            res.destroy(); 
+        });
+
+    } catch (e) {
+        console.error('Error exporting data:', e);
+        return res.status(500).json({
+            status: 'error',
+            success: false,
+            message: 'Error exporting data'
+        });
+    }
+};
+
+
+//FUTURE IMPLEMENTATION
+
+/* export const dataRetentionPeriod = async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if(!userId){
+        return res.status(401).json({
+            status: 'error',
+            success: false,
+            message: 'User not authenticated'
+        })
+    }
+} */
