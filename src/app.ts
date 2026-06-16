@@ -6,7 +6,7 @@ import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
-import mongoSanitize from 'express-mongo-sanitize';
+import mongoSanitizer from 'mongo-sanitizer';
 import {xss} from 'express-xss-sanitizer';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRouter from './routes/auth.routes.js';
@@ -15,13 +15,17 @@ import googleAuthRouter from './routes/googleAuth.routes.js';
 import analysesRouter from './routes/analyses.routes.js';
 import dashboardRouter from './routes/dashboard.routes.js';
 import historyRouter from './routes/history.routes.js';
+import settingsRouter from './routes/settings.routes.js';
 dotenv.config();
 
 
 connectDB();
 const app: Express = express();
 app.use(express.json());
-app.use(mongoSanitize());
+app.use((req, res, next) => {
+  mongoSanitizer(req); 
+  next();
+});
 app.use(xss());
 app.use(cookieParser());
 app.use(morgan('dev'));
@@ -66,6 +70,7 @@ app.use('/api/auth', oauthLimiter, googleAuthRouter);
 app.use('/api/analyses', apiLimiter, analysesRouter);
 app.use('/api/dashboard', apiLimiter, dashboardRouter);
 app.use('/api/history', apiLimiter, historyRouter);
+app.use('/api/settings', apiLimiter, settingsRouter);
 
 
 
