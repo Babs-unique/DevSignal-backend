@@ -6,7 +6,6 @@ import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
-import * as mongoSanitizerModule from 'mongo-sanitizer';
 import {xss} from 'express-xss-sanitizer';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRouter from './routes/auth.routes.js';
@@ -16,19 +15,59 @@ import analysesRouter from './routes/analyses.routes.js';
 import dashboardRouter from './routes/dashboard.routes.js';
 import historyRouter from './routes/history.routes.js';
 import settingsRouter from './routes/settings.routes.js';
+/* import * as mongoSanitizerModule from 'mongo-sanitizer'; */
 dotenv.config();
 
 
 connectDB();
 const app: Express = express();
 app.use(express.json());
-const mongoSanitizer = (mongoSanitizerModule as any).default || mongoSanitizerModule;
+/* const mongoSanitizer = (mongoSanitizerModule as any).default || mongoSanitizerModule;
 app.use((req:Request, res: Response, next:NextFunction) => {
     if (req.body) mongoSanitizer(req.body);
     if (req.query) mongoSanitizer(req.query);
     if (req.params) mongoSanitizer(req.params);
     next();
+}); */
+// 1. Create a native, ultra-reliable sanitization function
+const deepSanitize = (obj: any): any => {
+    if (obj instanceof Object) {
+        for (const key in obj) {
+        if (/^\$/.test(key) || key.includes('.')) {
+            delete obj[key]; // Drops NoSQL keys like $gt, $ne, etc.
+        } else {
+            deepSanitize(obj[key]); // Recursively checks nested objects
+        }
+        }
+    }
+    return obj;
+};
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.body) deepSanitize(req.body);
+    if (req.params) deepSanitize(req.params);
+
+    // Safe handling for Express 5's read-only req.query
+    if (req.query) {
+        try {
+        const serialized = JSON.parse(JSON.stringify(req.query));
+        const sanitized = deepSanitize(serialized);
+        
+        Object.defineProperty(req, 'query', {
+            value: sanitized,
+            writable: true,
+            configurable: true,
+            enumerable: true
+        });
+        } catch (e) {
+        // Fallback if query object serialization fails
+            console.error('Error sanitizing query object:', e);
+        }
+    }
+    
+    next();
 });
+
 app.use(xss());
 app.use(cookieParser());
 app.use(morgan('dev'));
