@@ -1,12 +1,12 @@
 import express from 'express';
-import type{ Request, Response, Express } from 'express';
+import type{ Request, Response, Express, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
-import mongoSanitizer from 'mongo-sanitizer';
+import * as mongoSanitizerModule from 'mongo-sanitizer';
 import {xss} from 'express-xss-sanitizer';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRouter from './routes/auth.routes.js';
@@ -22,9 +22,12 @@ dotenv.config();
 connectDB();
 const app: Express = express();
 app.use(express.json());
-app.use((req, res, next) => {
-  mongoSanitizer(req); 
-  next();
+const mongoSanitizer = (mongoSanitizerModule as any).default || mongoSanitizerModule;
+app.use((req:Request, res: Response, next:NextFunction) => {
+    if (req.body) mongoSanitizer(req.body);
+    if (req.query) mongoSanitizer(req.query);
+    if (req.params) mongoSanitizer(req.params);
+    next();
 });
 app.use(xss());
 app.use(cookieParser());
