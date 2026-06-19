@@ -20,6 +20,8 @@ export const validateTurnstile = async (token: string, remoteip: string | undefi
 
     formData.append("secret", env.TURNSTILE_SECRET_KEY);
     formData.append("response", token);
+    
+    if(remoteip)
     formData.append("remoteip", remoteip);
 
     const { data }: { data: TurnstileResponse } = await axios.post(
