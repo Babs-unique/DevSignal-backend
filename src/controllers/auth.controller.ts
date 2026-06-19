@@ -5,24 +5,27 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken, verifyAc
 import { sendPasswordResetEmail } from '../services/email.service.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { validateTurnstile } from '../utils/cloudFlare.js';
 
 interface RegisterBody {
     email?: string;
     password?: string;
     confirmPassword?: string;
+    token?: string
 }
 
 interface LoginBody{
     email?: string;
     password?: string;
+    token?: string
 }
 
 
 export const register = async (req: Request<{}, any, RegisterBody>,
     res: Response) => {
-    const { email, password , confirmPassword } = req.body;
+    const { email, password , confirmPassword, token } = req.body;
 
-    if (!email || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword || !token) {
         return res.status(400).json({
             status: 'error',
             message: 'Email, password and confirm password are required'
@@ -35,7 +38,13 @@ export const register = async (req: Request<{}, any, RegisterBody>,
             message: 'Passwords do not match'
         })
     }
-
+    const isTurnstileValid = await validateTurnstile(token , req.ip);
+    if (!isTurnstileValid) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'reCaptcha failed '
+        })
+    }
     try{
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -84,11 +93,18 @@ export const register = async (req: Request<{}, any, RegisterBody>,
 }
 export const login = async (req:Request<{}, any, LoginBody>,
     res:Response) => {
-    const {email, password} = req.body;
-    if( !email || !password){
+    const {email, password , token} = req.body;
+    if( !email || !password || !token){
         return res.status(400).json({
             status: 'error',        
             message: 'Email and password are required'
+        })
+    }
+    const isTurnstileValid = await validateTurnstile(token , req.ip);
+    if (!isTurnstileValid) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'reCaptcha failed '
         })
     }
     try{
