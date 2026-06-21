@@ -4,7 +4,7 @@ dotenv.config();
 
 interface EnvironmentVariables {
     PORT: string | number;
-    MONGO_URI: string;
+    MONGODB_URI: string;
     JWT_SECRET: string;
     JWT_REFRESH_SECRET: string;
     JWT_SECRET_EXPIRES: string;
@@ -17,7 +17,7 @@ interface EnvironmentVariables {
 const extractEnvironmentVariables = (): EnvironmentVariables => {
     return {
         PORT: process.env.PORT || 5000,
-        MONGO_URI: process.env.MONGO_URI || '',
+        MONGODB_URI: process.env.MONGODB_URI || '',
         JWT_SECRET: process.env.JWT_SECRET || 'dev-access-secret',
         JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
         JWT_SECRET_EXPIRES: process.env.JWT_SECRET_EXPIRES || '15m',
