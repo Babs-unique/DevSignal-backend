@@ -8,13 +8,7 @@ import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import {xss} from 'express-xss-sanitizer';
 import { errorHandler } from './middleware/errorHandler.js';
-import authRouter from './routes/auth.routes.js';
-import githubAuthRouter from './routes/githubAuth.routes.js';
-import googleAuthRouter from './routes/googleAuth.routes.js';
-import analysesRouter from './routes/analyses.routes.js';
-import dashboardRouter from './routes/dashboard.routes.js';
-import historyRouter from './routes/history.routes.js';
-import settingsRouter from './routes/settings.routes.js';
+import apiRouter from './routes/api.routes.js';
 /* import * as mongoSanitizerModule from 'mongo-sanitizer'; */
 dotenv.config();
 
@@ -76,7 +70,7 @@ app.use(cors({
     credentials: true
 }));
 
-
+/* 
 const oauthLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: parseInt(process.env.OAUTH_MAX_REQUESTS || '50', 10), // Limit each IP to 50 requests per windowMs
@@ -102,19 +96,11 @@ const apiLimiter = rateLimit({
         status: 'error',
         message: 'Too many requests from this IP, please try again after 15 minutes'
     }
-})
+}) */
 
 
 
-app.use('/api/auth', authLimiter, authRouter);
-app.use('/api/auth', oauthLimiter, githubAuthRouter);
-app.use('/api/auth', oauthLimiter, googleAuthRouter);
-app.use('/api/analyses', apiLimiter, analysesRouter);
-app.use('/api/dashboard', apiLimiter, dashboardRouter);
-app.use('/api/history', apiLimiter, historyRouter);
-app.use('/api/settings', apiLimiter, settingsRouter);
-
-
+app.use('/api/v1' , apiRouter);
 
 
 app.get('/', (req: Request, res: Response) => {
