@@ -17,7 +17,7 @@ interface EnvironmentVariables {
 const extractEnvironmentVariables = (): EnvironmentVariables => {
     return {
         PORT: process.env.PORT || 5000,
-        MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/devsignal',
+        MONGO_URI: process.env.MONGO_URI || '',
         JWT_SECRET: process.env.JWT_SECRET || 'dev-access-secret',
         JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
         JWT_SECRET_EXPIRES: process.env.JWT_SECRET_EXPIRES || '15m',
