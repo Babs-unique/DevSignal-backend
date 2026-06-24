@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import { generateState, validateState , deleteState } from '../utils/state.js';
 import { generateCodeVerifier, generateCodeChallenge } from '../utils/pkce.js';
 import { userLoginOrRegister, refreshGithubToken, logoutGithubUser } from '../services/githubAuth.service.js';
+import { env } from '../config/env.js'
 
 
 
@@ -35,7 +36,7 @@ export const initiateGithubOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
                 authUrl
             }
         })
-        /* res.redirect(authUrl); */ // Uncomment this line to redirect to Github OAuth
+        res.redirect(authUrl); // Uncomment this line to redirect to Github OAuth
         } catch (e) {
         console.error('Error initiating GitHub OAuth:', e);
         return res.status(500).json({
@@ -97,13 +98,14 @@ export const handleGithubOauthCallback = async (req: Request , res:Response ) =>
             sameSite: 'strict',
             maxAge: 15 * 60 * 1000, // 15 minutes
         });
-        return res.status(200).json({
+/*         return res.status(200).json({
             status: 'success',
             message: 'GitHub OAuth successful',
             data: {
                 user: authResult.user
             }
-        });
+        }); */
+            return res.redirect(`${env.CLIENT_URL}/auth/callback` || "http://localhost:5173/auth/callback");
 
     }catch(e){
         console.error('Error handling GitHub OAuth callback:', e);
