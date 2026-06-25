@@ -11,7 +11,7 @@ import settingsRouter from "./settings.routes.js";
 
 const apiRouter: Router = express.Router();
 
-apiRouter.use('/api/v1/auth', authLimiter, authRouter);
+apiRouter.use('/auth', authLimiter, authRouter);
 // Auth routes (sharing oauthLimiter)
 apiRouter.use('/auth', oauthLimiter, githubAuthRouter);
 apiRouter.use('/auth', oauthLimiter, googleAuthRouter);
