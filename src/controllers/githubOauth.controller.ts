@@ -11,7 +11,7 @@ import { env } from '../config/env.js'
 
 
 
-export const initiateGithubOAuth = (req: Request<{}, {} ,{} , { json?: boolean }>, res: Response) => {
+export const initiateGithubOAuth = (req: Request<{}, {} ,{} , { json?: string }>, res: Response) => {
     try {
         const codeVerifier = generateCodeVerifier();
         const codeChallenge = generateCodeChallenge(codeVerifier);
@@ -20,14 +20,13 @@ export const initiateGithubOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
             codeChallenge
         })
         const authUrl = `${githubConfig.authUrl}?client_id=${githubConfig.clientId}&redirect_uri=${encodeURIComponent(githubConfig.redirectUri)}&scope=user:email&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
-        if(req.query.json === true || req.headers.accept?.includes('application/json')){
-            return { 
+        if(req.query.json === 'true' || req.headers.accept?.includes('application/json')){
+            return res.json({ 
                 success: true,
                 message : 'GitHub OAuth initiated successfully',
-                AuthorizationUrl: authUrl,
+                authUrl,
                 state,
-                codeVerifier
-            }
+            });
         }   
   /*       return res.status(200).json({
             status: true,
@@ -105,7 +104,8 @@ export const handleGithubOauthCallback = async (req: Request , res:Response ) =>
                 user: authResult.user
             }
         }); */
-            return res.redirect(`${env.CLIENT_URL}/auth/callback` || "http://localhost:5173/auth/callback");
+            const clientUrl = env.CLIENT_URL || "http://localhost:5173";
+            return res.redirect(`${clientUrl}/auth/callback`);
 
     }catch(e){
         console.error('Error handling GitHub OAuth callback:', e);

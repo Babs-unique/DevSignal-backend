@@ -16,7 +16,7 @@ export const githubAccessToken = async (code: string, codeVerifier: string) => {
                 client_id: githubConfig.clientId,
                 client_secret: githubConfig.clientSecret,
                 code: code,
-                redirect_url: githubConfig.redirectUri,
+                redirect_uri: githubConfig.redirectUri,
                 code_verifier: codeVerifier
             },
             {

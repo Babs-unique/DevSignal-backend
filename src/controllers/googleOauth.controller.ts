@@ -6,8 +6,9 @@ import { generateCodeVerifier, generateCodeChallenge } from '../utils/pkce.js';
 import { generateState, validateState, deleteState } from '../utils/state.js';
 import { User } from '../models/users.model.js';
 import jwt from 'jsonwebtoken';
+import { env } from '../config/env.js';
 
-export const initiateGoogleOAuth = (req: Request<{}, {} ,{} , { json?: boolean }>, res: Response) => {
+export const initiateGoogleOAuth = (req: Request<{}, {} ,{} , { json?: string }>, res: Response) => {
     try {
         const codeVerifier = generateCodeVerifier();
         const codeChallenge = generateCodeChallenge(codeVerifier);
@@ -25,7 +26,7 @@ export const initiateGoogleOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
             code_challenge_method: 'S256',
         });
         const authUrl = `${googleConfig.authUrl}?${authParams.toString()}`;
-        if(req.query.json === true || req.headers.accept?.includes('application/json')){
+        if(req.query.json === 'true' || req.headers.accept?.includes('application/json')){
             return res.json({ 
                 success: true,
                 authUrl
@@ -97,13 +98,8 @@ export const handleGoogleOauthCallback = async (req: Request , res:Response ) =>
             sameSite: 'strict',
             maxAge: 15 * 60 * 1000
         });
-        return res.json({
-            success: true,
-            message: 'Authentication successful',
-            data : {
-                user: user.user,
-            }
-        });
+        const clientUrl = env.CLIENT_URL || "http://localhost:5173";
+        return res.redirect(`${clientUrl}/auth/callback`);
     }catch(e){
         console.error('Error handling Google OAuth callback:', e);
         return res.status(500).json({
