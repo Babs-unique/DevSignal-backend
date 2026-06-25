@@ -29,14 +29,14 @@ export const initiateGithubOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
                 codeVerifier
             }
         }   
-        return res.status(200).json({
+  /*       return res.status(200).json({
             status: true,
             message: 'Authorization url generated successfully',
             data:{
                 authUrl
             }
-        })
-        res.redirect(authUrl); // Uncomment this line to redirect to Github OAuth
+        }) */
+         res.redirect(authUrl); // Uncomment this line to redirect to Github OAuth
         } catch (e) {
         console.error('Error initiating GitHub OAuth:', e);
         return res.status(500).json({

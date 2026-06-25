@@ -31,14 +31,14 @@ export const initiateGoogleOAuth = (req: Request<{}, {} ,{} , { json?: boolean }
                 authUrl
             });
         }
-         return res.status(200).json({
+     /*    return res.status(200).json({
             status: true,
             message: 'Authorization url generated successfully',
             data:{
                 authUrl
             }
-        })
-      /*   res.redirect(authUrl); */ // Uncomment this line to redirect to Google OAuth
+        }) */
+        res.redirect(authUrl); // Uncomment this line to redirect to Google OAuth
     } catch (error) {
         console.error('Error initiating Google OAuth:', error);
         res.status(500).json({ error: 'Failed to initiate Google OAuth' });
