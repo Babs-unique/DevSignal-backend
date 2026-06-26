@@ -72,6 +72,13 @@ export const handleGoogleOauthCallback = async (req: Request , res:Response ) =>
         });
     }
     const { codeVerifier , createdAt } = stateData;
+    if (!codeVerifier) {
+        return res.status(400).json({
+            status: "error",
+            success: false,
+            message: "Invalid state parameter"
+        });
+    }
     if(Date.now() - createdAt > 15 * 60 * 1000){ // State expires after 15 minutes
         deleteState(state as string);
         return res.status(400).json({

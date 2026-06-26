@@ -69,6 +69,13 @@ export const handleGithubOauthCallback = async (req: Request , res:Response ) =>
         });
     }
     const { codeVerifier , createdAt } = stateData;
+    if (!codeVerifier) {
+        return res.status(400).json({
+            status: "error",
+            success: false,
+            message: "Invalid state parameter"
+        });
+    }
     const maxStateAge = 10 * 60 * 1000; // 10 minutes
     if(Date.now() - createdAt > maxStateAge){
         deleteState(state as string);
