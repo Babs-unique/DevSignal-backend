@@ -1,28 +1,45 @@
-import { githubConfig } from '../config/github.js';
-import { githubAccessToken, githubUser } from './github.service.js';
 import { User } from '../models/users.model.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 
 
 
 export const userLoginOrRegister = async (githubUserData: any) => {
+    if (!githubUserData.email) {
+        throw new Error('GitHub account did not provide a verified email address');
+    }
+
     let user = await User.findOne({ githubId: githubUserData.id });
+
     if (!user) {
-        user = new User({
+        user = await User.findOne({ email: githubUserData.email });
+    }
+
+    if (!user) {
+        user = await User.create({
             githubId: githubUserData.id,
             email: githubUserData.email,
             name: githubUserData.name || githubUserData.login,
+            avatarUrl: githubUserData.avatar_url,
         });
-        await user.save();
+    } else {
+        if (user.githubId && user.githubId !== githubUserData.id) {
+            throw new Error('This email is already linked to a different GitHub account');
+        }
+
+        user.githubId = user.githubId || githubUserData.id;
+        user.name = user.name || githubUserData.name || githubUserData.login;
+        user.avatarUrl = user.avatarUrl || githubUserData.avatar_url;
     }
+
     const accessToken = generateAccessToken({ userId: user.id });
     const refreshToken = generateRefreshToken({ userId: user.id });
-    const updatedUser = await User.findOneAndUpdate(
-        { githubId: githubUserData.id },
-        { refreshToken, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), isRevoked: false },
-        { new: true }
-    );
-    return { user: updatedUser, accessToken, refreshToken };
+
+    user.refreshToken = refreshToken;
+    user.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    user.isRevoked = false;
+    await user.save();
+
+    return { user, accessToken, refreshToken };
 }
 
 
