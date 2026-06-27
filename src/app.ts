@@ -7,8 +7,10 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import {xss} from 'express-xss-sanitizer';
+import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './middleware/errorHandler.js';
 import apiRouter from './routes/api.routes.js';
+import { swaggerSpec } from './config/swagger.js';
 /* import * as mongoSanitizerModule from 'mongo-sanitizer'; */
 dotenv.config();
 
@@ -69,6 +71,19 @@ app.use(morgan('dev'));
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173', // Update with your frontend URL
     credentials: true
+}));
+
+app.get('/api-docs.json', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: 'DevSignal API Docs',
+    swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
+    },
 }));
 
 /* 

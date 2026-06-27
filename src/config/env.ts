@@ -12,7 +12,8 @@ interface EnvironmentVariables {
     OPENAI_API_KEY: string,
     GEMINI_API_KEY: string,
     TURNSTILE_SECRET_KEY: string,
-    CLIENT_URL: string
+    CLIENT_URL: string,
+    API_PUBLIC_URL: string
 }
 
 const extractEnvironmentVariables = (): EnvironmentVariables => {
@@ -26,7 +27,8 @@ const extractEnvironmentVariables = (): EnvironmentVariables => {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
         GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
         TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || '',
-        CLIENT_URL: process.env.CLIENT_URL || ''
+        CLIENT_URL: process.env.CLIENT_URL || '',
+        API_PUBLIC_URL: process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 5000}`
     };
 };
 
