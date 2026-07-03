@@ -7,7 +7,8 @@ import {
     logout,
     forgotPassword,
     resetPassword,
-    getCurrentUser
+    getCurrentUser,
+    deleteAccount
 } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { loginSchema , registerSchema } from '../schema/authSchema.js';
@@ -24,6 +25,9 @@ router.post('/logout', authenticate, logout);
 
 // Get current user (protected)
 router.get('/me', authenticate, getCurrentUser);
+
+// Delete account (protected)
+router.delete('/delete', authenticate, deleteAccount);
 
 // Password recovery routes
 router.post('/forgot-password', forgotPassword);

@@ -108,7 +108,7 @@ export const login = async (req:Request<{}, any, LoginBody>,
         })
     }
     try{
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email, isDeleted: false });
         if(!user){
             return res.status(400).json({
                 status: 'error',
@@ -202,7 +202,8 @@ export const refreshToken = async (req: Request, res: Response) => {
         const user = await User.findOne({
             _id: verified.userId,
             refreshToken: refreshTokenCookie,
-            isRevoked: false
+            isRevoked: false,
+            isDeleted: false
         });
 
         if (!user) {
@@ -329,7 +330,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email, isDeleted: false });
         if (!user) {
             // Don't reveal if user exists for security reasons
             return res.status(200).json({
@@ -437,7 +438,10 @@ export const getCurrentUser = async (req: Request, res: Response) => {
             });
         }
 
-        const user = await User.findById(req.user.userId).select('-password -refreshToken -resetToken -resetTokenExpiry');
+        const user = await User.findOne({
+            _id: req.user.userId,
+            isDeleted: false
+        }).select('-password -refreshToken -resetToken -resetTokenExpiry');
 
         if (!user) {
             return res.status(404).json({
@@ -468,6 +472,66 @@ export const getCurrentUser = async (req: Request, res: Response) => {
         });
     }
 };
+
+
+export const deleteAccount = async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({
+            status: 'error',
+            message: 'Unauthorized'
+        });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (!user || user.isDeleted) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'User not found or already deleted'
+            });
+        }
+
+        const deletionRequestedAt = new Date();
+        const deletionExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        user.isDeleted = true;
+        user.deletionRequestedAt = deletionRequestedAt;
+        user.deletionExpiresAt = deletionExpiresAt;
+        user.deletionPeriod = 30;
+        user.refreshToken = undefined;
+        user.isRevoked = true;
+        user.expiresAt = undefined;
+        await user.save();
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        });
+        res.clearCookie('accessToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        });
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Account deletion requested. Your data will be permanently removed after 30 days.',
+            data: {
+                deletionRequestedAt,
+                deletionExpiresAt,
+                deletionPeriod: 30
+            }
+        });
+    } catch (e) {
+        console.error('Error deleting account:', e);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Unable to delete account'
+        });
+    }
+}
 
 
 

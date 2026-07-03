@@ -48,6 +48,20 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    deletionRequestedAt: {
+        type: Date,
+    },
+    deletionExpiresAt: {
+        type: Date,
+    },
+    deletionPeriod: {
+        type: Number,
+        default: 30
+    },
     createdAt: {
         type: Date,
         default: Date.now
