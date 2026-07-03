@@ -20,6 +20,22 @@ interface LoginBody{
     token?: string
 }
 
+const getNameFromEmailNoNumbers = (email: string) => {
+    const localPart = email.split('@')[0] ?? '';
+    const cleaned = localPart
+        .replace(/[._-]+/g, ' ')
+        .trim()
+        .split(' ')
+        .map((segment) => segment
+            .trim()
+            .replace(/[^\p{L}]/gu, '')
+            .toLowerCase()
+        )
+        .filter(Boolean)
+        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1));
+
+    return cleaned.length > 0 ? cleaned.join(' ') : 'User';
+}
 
 export const register = async (req: Request<{}, any, RegisterBody>,
     res: Response) => {
@@ -57,7 +73,7 @@ export const register = async (req: Request<{}, any, RegisterBody>,
         const user = new User({
             email,
             password: hashedPassword,
-            name: email.split('@')[0] || 'User'
+            name: getNameFromEmailNoNumbers(email)
         });
         await user.save();
 
