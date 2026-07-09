@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { Analysis } from '../models/analysis.model.js';
+import cloudinary from '../middleware/cloudinary.js';
+import { Readable } from 'stream';
 
 export const getSettings = async( req: Request, res:Response) => {
     const userId = req.user?.userId;
@@ -204,6 +206,83 @@ export const exportData = async (req: Request, res: Response) => {
     }
 };
 
+export const avatarUpload = async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+        return res.status(401).json({
+            status: 'error',
+            success: false,
+            message: 'User not authenticated'
+        });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({
+            status: 'error',
+            success: false,
+            message: 'Please provide an image file'
+        });
+    }
+
+    try {
+        const uploadedAvatar = await new Promise<{ secure_url: string }>((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder: 'devsignal/avatars',
+                    resource_type: 'image',
+                    transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
+                },
+                (error, result) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    if (!result?.secure_url) {
+                        reject(new Error('Avatar upload failed'));
+                        return;
+                    }
+
+                    resolve(result as { secure_url: string });
+                }
+            );
+
+            const bufferStream = new Readable();
+            bufferStream.push(req.file?.buffer);
+            bufferStream.push(null);
+            bufferStream.pipe(uploadStream);
+        });
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        user.avatarUrl = uploadedAvatar.secure_url;
+        await user.save();
+
+        return res.status(200).json({
+            status: 'success',
+            success: true,
+            message: 'Avatar uploaded successfully',
+            data: {
+                avatarUrl: user.avatarUrl
+            }
+        });
+    } catch (e) {
+        console.error('Error uploading avatar:', e);
+        return res.status(500).json({
+            status: 'error',
+            success: false,
+            message: 'Error uploading avatar'
+        });
+    }
+};
 
 //FUTURE IMPLEMENTATION
 

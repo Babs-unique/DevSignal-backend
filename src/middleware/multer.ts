@@ -46,9 +46,30 @@ const resumeFileFilter = (
     }
 };
 
+const avatarFileFilter = (
+    req: Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback
+) => {
+    const allowedImageExt = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+
+    if (allowedImageExt.includes(ext)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Unsupported image format'));
+    }
+};
+
 export const upload = multer({ 
     storage: storage,
     fileFilter: fileFilter 
+});
+
+export const avatarUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: avatarFileFilter
 });
 
 export const resumeUpload = multer({ 

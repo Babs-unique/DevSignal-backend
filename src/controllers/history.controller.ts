@@ -7,7 +7,9 @@ import { getDateRange } from "../utils/dateRange.js";
 interface SearchQuery{
     q?:string,
     score?:string,
-    date?:string
+    date?:string,
+    page?:string,
+    limit?:string
 }
 export const getHistoryMetric = async (req: Request, res: Response) => {
     const userId = req.user?.userId;
@@ -96,6 +98,9 @@ export const searchHistory = async (req: Request<
     const { q } = req.query;
     const date = parseInt(req.query.date as string) || 30;
     const score = parseInt(req.query.score as string) || 50;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const startIndex = (page - 1) * limit;
     const dateRange = getDateRange(date);
 
     if(!q){
@@ -108,7 +113,7 @@ export const searchHistory = async (req: Request<
     const formattedQuery = (text:string):string => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
     const configuredQuery = formattedQuery(q);
     try {
-        const analyses = await Analysis.find({ 
+        const query = {
             $or: [
                 { roleTitle: { $regex: configuredQuery, $options: "i" } },
                 { companyName: { $regex: configuredQuery, $options: "i" } },
@@ -117,13 +122,23 @@ export const searchHistory = async (req: Request<
             createdAt: { $gte: dateRange},
             userId,
             isDeleted:false
-        });
+        };
+
+        const totalCount = await Analysis.countDocuments(query);
+        const analyses = await Analysis.find(query)
+            .sort({ createdAt: -1 })
+            .skip(startIndex)
+            .limit(limit);
+
         if(analyses.length === 0){
             return res.status(200).json({
                 status: "success",
                 success: true,
                 data: {
                     analyses: [],
+                    totalCount,
+                    page,
+                    limit,
                 },
                 message: "No results found"
             });
@@ -133,6 +148,9 @@ export const searchHistory = async (req: Request<
             success: true,
             data: {
                 analyses,
+                totalCount,
+                page,
+                limit,
             },
         });
     } catch (e) {

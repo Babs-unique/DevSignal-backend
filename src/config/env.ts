@@ -13,7 +13,10 @@ interface EnvironmentVariables {
     GEMINI_API_KEY: string,
     TURNSTILE_SECRET_KEY: string,
     CLIENT_URL: string,
-    API_PUBLIC_URL: string
+    API_PUBLIC_URL: string,
+    CLOUDINARY_CLOUD_NAME: string,
+    CLOUDINARY_API_KEY: string,
+    CLOUDINARY_API_SECRET: string,
 }
 
 const extractEnvironmentVariables = (): EnvironmentVariables => {
@@ -28,7 +31,10 @@ const extractEnvironmentVariables = (): EnvironmentVariables => {
         GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
         TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || '',
         CLIENT_URL: process.env.CLIENT_URL || '',
-        API_PUBLIC_URL: process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 5000}`
+        API_PUBLIC_URL: process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 5000}`,
+        CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
+        CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '',
+        CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
     };
 };
 
