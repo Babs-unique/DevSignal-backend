@@ -55,7 +55,7 @@ const avatarFileFilter = (
     const ext = path.extname(file.originalname).toLowerCase();
 
     if (allowedImageExt.includes(ext)) {
-        cb(null, true);
+        cb(null , true);
     } else {
         cb(new Error('Unsupported image format'));
     }
