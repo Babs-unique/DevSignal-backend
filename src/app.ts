@@ -18,6 +18,7 @@ dotenv.config();
 connectDB();
 const app: Express = express();
 app.set('trust proxy', 1);
+app.disable('etag');
 app.use(express.json());
 /* const mongoSanitizer = (mongoSanitizerModule as any).default || mongoSanitizerModule;
 app.use((req:Request, res: Response, next:NextFunction) => {
@@ -116,6 +117,12 @@ const apiLimiter = rateLimit({
 
 
 
+app.use('/api/v1', (_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+});
 app.use('/api/v1' , apiRouter);
 
 
