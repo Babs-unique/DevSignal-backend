@@ -21,7 +21,7 @@ export const getHistoryMetric = async (req: Request, res: Response) => {
         });
     }
     try {
-        const analyses = await Analysis.find({ userId , isDeleted:false})
+        const analyses = await Analysis.find({ user: userId , isDeleted:false})
         .sort({ createdAt: -1 });
 
         const averageMatchScore = analyses.reduce((total, analysis) => total + analysis.matchScore, 0) / analyses.length;
@@ -61,7 +61,7 @@ export const getHistory = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10 ;
     const startIndex = (page - 1) * limit;
     try {
-        const analyses = await Analysis.find({ userId , isDeleted:false })
+        const analyses = await Analysis.find({ user: userId , isDeleted:false })
         .sort({ createdAt: -1 })
         .skip(startIndex)
         .limit(limit);
@@ -120,7 +120,7 @@ export const searchHistory = async (req: Request<
             ],
             matchScore: { $gte: score },
             createdAt: { $gte: dateRange},
-            userId,
+            user: userId,
             isDeleted:false
         };
 
@@ -227,7 +227,7 @@ export const deleteHistoryById = async (req: Request, res: Response) => {
 
     try {
         const analysis = await Analysis.findOneAndUpdate(
-            { _id: id, userId: userId },
+            { _id: id, user: userId },
             { 
                 $set: { 
                     isDeleted: true, 

@@ -14,7 +14,7 @@ export const getDashboard = async (req: Request, res: Response) => {
         });
     }
     try {
-        const analyses = await Analysis.find({ userId , isDeleted:false})
+        const analyses = await Analysis.find({ user:userId , isDeleted:false})
         .sort({ createdAt: -1 })
         .limit(3)
 
@@ -55,7 +55,7 @@ export const getLatestAnalysesById = async (req: Request, res: Response) => {
         });
     }
     try {
-        const analyses = await Analysis.find({ userId, _id: id , isDeleted:false})
+        const analyses = await Analysis.find({user: userId, _id: id , isDeleted:false})
         return res.status(200).json({
             status: 'success',
             success: true,
