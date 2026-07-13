@@ -45,6 +45,9 @@ export interface AnalysisResult {
         overallAssessment: string;
         marketReadiness: string;
         hiringLikelihood: string;
+        experienceLevel: string;
+        formatScore: number;
+        impactWords: 'Needs Work' | 'Average' | 'Good' | 'Excellent';
     };
     existingSkills: ExistingSkill[];
     missingSkills: MissingSkill[];
@@ -82,7 +85,10 @@ export const analyzeWithGemini = async (data: PromptData): Promise<AnalysisResul
                         properties: {
                             overallAssessment: { type: Type.STRING },
                             marketReadiness: { type: Type.STRING },
-                            hiringLikelihood: { type: Type.STRING }
+                            hiringLikelihood: { type: Type.STRING },
+                            experienceLevel: { type: Type.STRING },
+                            formatScore: { type: Type.NUMBER },
+                            impactWords: { type: Type.STRING, enum: ["Needs Work", "Average", "Good", "Excellent"] }
                         },
                         required: ["overallAssessment", "marketReadiness", "hiringLikelihood"]
                     },
