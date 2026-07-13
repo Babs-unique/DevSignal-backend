@@ -110,7 +110,10 @@ Return JSON in exactly this format:
   "analysisSummary": {
     "overallAssessment": "",
     "marketReadiness": "",
-    "hiringLikelihood": ""
+    "hiringLikelihood": "",
+    "experienceLevel": "",
+    "formatScore": 0,
+    "impactWords": "Needs Work | Average | Good | Excellent" 
   },
 
   "existingSkills": [

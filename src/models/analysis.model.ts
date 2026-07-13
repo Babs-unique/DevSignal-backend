@@ -17,6 +17,12 @@ export interface Analysis{
     overallAssessment: string;
     marketReadiness: string;
     hiringLikelihood: string;
+    experienceLevel: String, 
+    formatScore: Number, 
+    impactWords: {           
+      type: String,
+      enum: ["Needs Work", "Average", "Good", "Excellent"]
+    }
   };
 
   existingSkills: {
