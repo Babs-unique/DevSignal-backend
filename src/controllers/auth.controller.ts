@@ -417,6 +417,7 @@ export const resetPassword = async (req: Request<{}, any, ResetPasswordBody>, re
         });
 
         if (!user) {
+            await bcrypt.hash(newPassword, 10);
             return res.status(400).json({
                 status: 'error',
                 message: 'Invalid or expired reset token'
@@ -430,7 +431,11 @@ export const resetPassword = async (req: Request<{}, any, ResetPasswordBody>, re
         user.password = hashedPassword;
         user.resetToken = undefined;
         user.resetTokenExpiry = undefined;
-        await user.save();
+       /*  await user.save(); */
+        await user.updateOne({
+            $set: {password : hashedPassword},
+            $unset:{resetToken: 1 , resetTokenExpiry: 1}
+        })
 
         return res.status(200).json({
             status: 'success',
