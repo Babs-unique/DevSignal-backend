@@ -13,7 +13,7 @@ export const swaggerSpec = swaggerJSDoc({
         },
         servers: [
             {
-                url: `${serverUrl}/api/v1`,
+                url: `${serverUrl}api/v1`,
                 description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Local development server',
             },
         ],
