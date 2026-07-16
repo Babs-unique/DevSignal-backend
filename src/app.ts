@@ -18,7 +18,6 @@ dotenv.config();
 connectDB();
 const app: Express = express();
 app.set('trust proxy', 1);
-app.disable('etag');
 app.use(express.json());
 /* const mongoSanitizer = (mongoSanitizerModule as any).default || mongoSanitizerModule;
 app.use((req:Request, res: Response, next:NextFunction) => {
