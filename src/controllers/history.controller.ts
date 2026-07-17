@@ -1,6 +1,7 @@
 import { Analysis } from "../models/analysis.model.js";
 import type { Request, Response } from "express";
 import { getDateRange } from "../utils/dateRange.js";
+import { success } from "zod";
 
 
 
@@ -181,7 +182,7 @@ export const getHistoryById = async (req : Request, res: Response) => {
         });
     }
     try {
-        const analysis = await Analysis.findById(id);
+        const analysis = await Analysis.findOne({_id: id, user: userId , isDeleted:false});
         if(!analysis){
             return res.status(404).json({
                 status: "error",
@@ -259,3 +260,63 @@ export const deleteHistoryById = async (req: Request, res: Response) => {
         });
     }
 }
+
+export const duplicateAnalysesById = async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) {        
+        return res.status(401).json({
+            status: 'error',
+            success: false,
+            message: 'User not authenticated'
+        });
+    }
+
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({
+            status: 'error',
+            success: false,
+            message: 'Analysis ID is required'
+        });
+    }
+
+    try {
+        const originalAnalysis = await Analysis.findOne({ _id: id, user: userId });
+        
+        if (!originalAnalysis) {
+            return res.status(404).json({ 
+                status: 'error',
+                success: false,
+                message: 'Analysis not found'
+            });
+        }
+
+        const analysesData = originalAnalysis.toObject();
+        const { _id, createdAt, updatedAt, ...cleanData } = analysesData;
+        
+
+        if (cleanData.resumeFileName) {
+            cleanData.resumeFileName = `copy_${cleanData.resumeFileName}`;
+        }
+
+        const duplicateAnalysis = new Analysis(cleanData);
+        await duplicateAnalysis.save();
+
+        return res.status(201).json({ 
+            status: 'success',
+            success: true,
+            message: 'Analysis duplicated successfully',
+            data: {
+                duplicateAnalysis
+            }
+        });
+        
+    } catch (e) {
+        console.error('Error in duplicating analyses', e);
+        return res.status(500).json({
+            status: 'error',
+            success: false,
+            message: 'Server Error'
+        });
+    }
+};

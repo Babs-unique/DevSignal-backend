@@ -41,38 +41,6 @@ export const getSettings = async( req: Request, res:Response) => {
         });
     }
 }
-export const deleteAccount = async ( req: Request, res:Response) =>{
-    const userId = req.user?.userId;
-    if(!userId){
-        return res.status(401).json({
-            status: 'error',
-            success: false,
-            message: 'User not authenticated'
-        })
-    }
-    try{
-        const user = await User.findByIdAndDelete(userId);
-        if(!user){
-            return res.status(404).json({
-                status: 'error',
-                success: false,
-                message: 'User not found'
-            })
-        }
-        return res.status(200).json({
-            status: 'success',
-            success: true,
-            message: 'Account deleted successfully'
-        })
-    }catch(e){
-        console.error('Error deleting account:', e);
-        return res.status(500).json({
-            status: 'error',
-            success: false,
-            message: 'Error deleting account'
-        })
-    }
-}
 
 export const updatePassword = async ( req: Request, res:Response) =>{
     const userId = req.user?.userId;

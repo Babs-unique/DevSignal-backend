@@ -1,6 +1,5 @@
 import {
     getSettings,
-    deleteAccount,
     updatePassword,
     exportData,
     avatarUpload as uploadAvatarController
@@ -14,7 +13,6 @@ const router: Router = express.Router();
 
 
 router.get('/', authenticate, getSettings);
-router.delete('/', authenticate, deleteAccount);
 router.patch('/password', authenticate, updatePassword);
 router.post('/avatar', authenticate, uploadAvatarMiddleware.single('avatar'), uploadAvatarController);
 router.get('/export', authenticate, exportData);

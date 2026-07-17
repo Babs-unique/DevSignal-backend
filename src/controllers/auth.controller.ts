@@ -505,7 +505,7 @@ export const deleteAccount = async (req: Request, res: Response) => {
     }
 
     try {
-        const user = await User.findById(userId);
+        const user = await User.findByIdAndUpdate(userId);
         if (!user || user.isDeleted) {
             return res.status(404).json({
                 status: 'error',

@@ -139,7 +139,7 @@ Return JSON in exactly this format:
       "title": "",
       "description": "",
       "category": "",
-      "difficulty": "",
+      "difficulty": "Beginner | Intermediate | Advanced",
       "estimatedTime": "",
       "careerImpact": ""
     }
