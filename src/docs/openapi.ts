@@ -372,6 +372,21 @@
  *     responses:
  *       200:
  *         description: History item deleted
+ * /history/{id}/duplicate
+ *  post:
+ *     tags:[History]
+ *     summary:Duplicate history item by id
+ *     security: 
+ *        -cookieAuth:[]
+ *     parameter:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: History duplicated successfully
  *
  * /settings:
  *   get:
