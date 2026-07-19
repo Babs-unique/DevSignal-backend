@@ -298,6 +298,9 @@ export const duplicateAnalysesById = async (req: Request, res: Response) => {
         if (cleanData.resumeFileName) {
             cleanData.resumeFileName = `copy_${cleanData.resumeFileName}`;
         }
+        if(cleanData.roleTitle){
+            cleanData.roleTitle = `${cleanData.roleTitle}(Copy)`
+        }
 
         const duplicateAnalysis = new Analysis(cleanData);
         await duplicateAnalysis.save();
