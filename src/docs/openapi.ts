@@ -372,13 +372,14 @@
  *     responses:
  *       200:
  *         description: History item deleted
- * /history/{id}/duplicate
- *  post:
- *     tags:[History]
- *     summary:Duplicate history item by id
- *     security: 
- *        -cookieAuth:[]
- *     parameter:
+ * 
+ * /history/{id}/duplicate:
+ *   post:
+ *     tags: [History]
+ *     summary: Duplicate history item by id
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
  *       - in: path
  *         name: id
  *         required: true
