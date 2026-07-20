@@ -96,13 +96,13 @@ export const handleGoogleOauthCallback = async (req: Request , res:Response ) =>
         res.cookie('refreshToken', user.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         res.cookie('accessToken', user.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'lax',
             maxAge: 15 * 60 * 1000
         });
         const clientUrl = env.CLIENT_URL || "http://localhost:5173";
@@ -132,13 +132,13 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
         res.cookie('refreshToken', result.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         res.cookie('accessToken', result.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'lax',
             maxAge: 15 * 60 * 1000
         });
         return res.json({
